@@ -96,7 +96,7 @@ export default function InteractiveAvatar() {
         knowledgeId: knowledgeId, // Or use a custom `knowledgeBase`.
         voice: {
           rate: tempo, // 0.5 ~ 1.5
-          emotion: VoiceEmotion[emotion],
+          emotion: emotion.toLowerCase(),//VoiceEmotion.FRIENDLY[emotion],
         },
         language: language,
       });
