@@ -11,19 +11,18 @@ import {
   CardFooter,
   Divider,
   Input,
-  Select,
-  SelectItem,
   Spinner,
   Chip,
   Tabs,
   Tab,
 } from "@nextui-org/react";
+import {Select, SelectItem} from "@nextui-org/select";
 import { useEffect, useRef, useState } from "react";
 import { useMemoizedFn, usePrevious } from "ahooks";
 
 import InteractiveAvatarTextInput from "./InteractiveAvatarTextInput";
 
-import {AVATARS, STT_LANGUAGE_LIST} from "@/app/lib/constants";
+import {AVATARS, STT_KNOWLEDGE_BASE_LIST, STT_LANGUAGE_LIST, EMOTIONS_LIST} from "@/app/lib/constants";
 
 export default function InteractiveAvatar() {
   const [isLoadingSession, setIsLoadingSession] = useState(false);
@@ -33,6 +32,8 @@ export default function InteractiveAvatar() {
   const [knowledgeId, setKnowledgeId] = useState<string>("");
   const [avatarId, setAvatarId] = useState<string>("");
   const [language, setLanguage] = useState<string>('en');
+  const [tempo, setTempo] = useState<number>(1.5);
+  const [emotion, setEmotion] = useState<string>('EXITED');
 
   const [data, setData] = useState<StartAvatarResponse>();
   const [text, setText] = useState<string>("");
@@ -70,6 +71,7 @@ export default function InteractiveAvatar() {
     });
     avatar.current.on(StreamingEvents.AVATAR_STOP_TALKING, (e) => {
       console.log("Avatar stopped talking", e);
+
     });
     avatar.current.on(StreamingEvents.STREAM_DISCONNECTED, () => {
       console.log("Stream disconnected");
@@ -93,8 +95,8 @@ export default function InteractiveAvatar() {
         avatarName: avatarId,
         knowledgeId: knowledgeId, // Or use a custom `knowledgeBase`.
         voice: {
-          rate: 1.5, // 0.5 ~ 1.5
-          emotion: VoiceEmotion.EXCITED,
+          rate: tempo, // 0.5 ~ 1.5
+          emotion: VoiceEmotion[emotion],
         },
         language: language,
       });
@@ -119,6 +121,7 @@ export default function InteractiveAvatar() {
     // speak({ text: text, task_type: TaskType.REPEAT })
     await avatar.current.speak({ text: text, taskType: TaskType.REPEAT, taskMode: TaskMode.SYNC }).catch((e) => {
       setDebug(e.message);
+      console.log(text);
     });
     setIsLoadingRepeat(false);
   }
@@ -216,24 +219,30 @@ export default function InteractiveAvatar() {
           ) : !isLoadingSession ? (
             <div className="h-full justify-center items-center flex flex-col gap-8 w-[500px] self-center">
               <div className="flex flex-col gap-2 w-full">
-                <p className="text-sm font-medium leading-none">
-                  Custom Knowledge ID (optional)
-                </p>
-                <Input
-                  placeholder="Enter a custom knowledge ID"
-                  value={knowledgeId}
-                  onChange={(e) => setKnowledgeId(e.target.value)}
-                />
-                <p className="text-sm font-medium leading-none">
-                  Custom Avatar ID (optional)
-                </p>
-                <Input
-                  placeholder="Enter a custom avatar ID"
-                  value={avatarId}
-                  onChange={(e) => setAvatarId(e.target.value)}
-                />
                 <Select
-                  placeholder="Or select one from these example avatars"
+                  label="Select knowledge base"
+                  size="md"
+                  onChange={(e) => {
+                    setKnowledgeId(e.target.value);
+                  }}
+                >
+                  {STT_KNOWLEDGE_BASE_LIST.map((knowledge) => (
+                    <SelectItem
+                      key={knowledge.knowledge_id}
+                      textValue={knowledge.knowledge_id}
+                    >
+                      {knowledge.name}
+                    </SelectItem>
+                  ))}
+                </Select>
+                <Input
+                    label={"Or enter a custom knowledge ID"}
+                    value={knowledgeId}
+                    onChange={(e) => setKnowledgeId(e.target.value)}
+                />
+                <hr/>
+                <Select
+                  label="Select avatar"
                   size="md"
                   onChange={(e) => {
                     setAvatarId(e.target.value);
@@ -248,9 +257,11 @@ export default function InteractiveAvatar() {
                     </SelectItem>
                   ))}
                 </Select>
+                <Input type={"number"} min={0.2} max={2.6} step={0.2} floatValue={tempo}
+                       onChange={(e) => setTempo(parseFloat(e.target.value))}
+                />
                 <Select
                   label="Select language"
-                  placeholder="Select language"
                   className="max-w-xs"
                   selectedKeys={[language]}
                   onChange={(e) => {
@@ -260,6 +271,20 @@ export default function InteractiveAvatar() {
                   {STT_LANGUAGE_LIST.map((lang) => (
                     <SelectItem key={lang.key}>
                       {lang.label}
+                    </SelectItem>
+                  ))}
+                </Select>
+                <Select
+                  label="Select emotion"
+                  className="max-w-xs"
+                  selectedKeys={[emotion]}
+                  onChange={(e) => {
+                    setEmotion(e.target.value);
+                  }}
+                >
+                  {EMOTIONS_LIST.map((emo) => (
+                    <SelectItem key={emo}>
+                      {emo.toLowerCase()}
                     </SelectItem>
                   ))}
                 </Select>
@@ -320,6 +345,8 @@ export default function InteractiveAvatar() {
       </Card>
       <p className="font-mono text-right">
         <span className="font-bold">Console:</span>
+        <br />
+          <span>{knowledgeId}, {avatarId}, {language}, {tempo}, {emotion}</span>
         <br />
         {debug}
       </p>
