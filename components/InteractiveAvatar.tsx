@@ -244,7 +244,6 @@ export default function InteractiveAvatar() {
                     value={knowledgeId}
                     onChange={(e) => setKnowledgeId(e.target.value)}
                 />
-
                 <Select
                   label="Select avatar"
                   size="md"
