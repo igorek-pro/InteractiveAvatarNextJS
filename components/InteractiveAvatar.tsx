@@ -29,17 +29,17 @@ export default function InteractiveAvatar() {
   const [isLoadingRepeat, setIsLoadingRepeat] = useState(false);
   const [stream, setStream] = useState<MediaStream>();
   const [debug, setDebug] = useState<string>();
-  const [knowledgeId, setKnowledgeId] = useState<string>("");
-  const [avatarId, setAvatarId] = useState<string>("");
+  const [knowledgeId, setKnowledgeId] = useState<string>("14a5835c39ad479b9f115ad92dcb1202");
+  const [avatarId, setAvatarId] = useState<string>("73c84e2b886940099c5793b085150f2f");
   const [language, setLanguage] = useState<string>('en');
   const [tempo, setTempo] = useState<number>(1.5);
-  const [emotion, setEmotion] = useState<string>('EXITED');
+  const [emotion, setEmotion] = useState<string>('EXCITED');
 
   const [data, setData] = useState<StartAvatarResponse>();
   const [text, setText] = useState<string>("");
   const mediaStream = useRef<HTMLVideoElement>(null);
   const avatar = useRef<StreamingAvatar | null>(null);
-  const [chatMode, setChatMode] = useState("text_mode");
+  const [chatMode, setChatMode] = useState("voice_mode");
   const [isUserTalking, setIsUserTalking] = useState(false);
 
   async function fetchAccessToken() {
@@ -59,6 +59,9 @@ export default function InteractiveAvatar() {
     return "";
   }
 
+  async function stopListening(){
+    avatar.current?.stopListening();
+  }
   async function startSession() {
     setIsLoadingSession(true);
     const newToken = await fetchAccessToken();
@@ -96,7 +99,7 @@ export default function InteractiveAvatar() {
         knowledgeId: knowledgeId, // Or use a custom `knowledgeBase`.
         voice: {
           rate: tempo, // 0.5 ~ 1.5
-          emotion: emotion.toLowerCase(),//VoiceEmotion.FRIENDLY[emotion],
+          emotion: VoiceEmotion[emotion as keyof typeof VoiceEmotion],
         },
         language: language,
       });
@@ -107,6 +110,7 @@ export default function InteractiveAvatar() {
       setChatMode("voice_mode");
     } catch (error) {
       console.error("Error starting avatar session:", error);
+
     } finally {
       setIsLoadingSession(false);
     }
@@ -184,7 +188,7 @@ export default function InteractiveAvatar() {
       <Card>
         <CardBody className="h-[500px] flex flex-col justify-center items-center">
           {stream ? (
-            <div className="h-[500px] w-[900px] justify-center items-center flex rounded-lg overflow-hidden">
+            <div className="justify-center items-center flex rounded-lg overflow-hidden">
               <video
                 ref={mediaStream}
                 autoPlay
@@ -202,7 +206,7 @@ export default function InteractiveAvatar() {
                   className="bg-gradient-to-tr from-indigo-500 to-indigo-300 text-white rounded-lg"
                   size="md"
                   variant="shadow"
-                  onClick={handleInterrupt}
+                  onPress={handleInterrupt}
                 >
                   Interrupt task
                 </Button>
@@ -210,7 +214,7 @@ export default function InteractiveAvatar() {
                   className="bg-gradient-to-tr from-indigo-500 to-indigo-300  text-white rounded-lg"
                   size="md"
                   variant="shadow"
-                  onClick={endSession}
+                  onPress={endSession}
                 >
                   End session
                 </Button>
@@ -218,7 +222,7 @@ export default function InteractiveAvatar() {
             </div>
           ) : !isLoadingSession ? (
             <div className="h-full justify-center items-center flex flex-col gap-8 w-[500px] self-center">
-              <div className="flex flex-col gap-2 w-full">
+              <div className="flex flex-col gap-4 w-full">
                 <Select
                   label="Select knowledge base"
                   size="md"
@@ -229,7 +233,7 @@ export default function InteractiveAvatar() {
                   {STT_KNOWLEDGE_BASE_LIST.map((knowledge) => (
                     <SelectItem
                       key={knowledge.knowledge_id}
-                      textValue={knowledge.knowledge_id}
+                      textValue={knowledge.name}
                     >
                       {knowledge.name}
                     </SelectItem>
@@ -240,7 +244,7 @@ export default function InteractiveAvatar() {
                     value={knowledgeId}
                     onChange={(e) => setKnowledgeId(e.target.value)}
                 />
-                <hr/>
+
                 <Select
                   label="Select avatar"
                   size="md"
@@ -257,7 +261,9 @@ export default function InteractiveAvatar() {
                     </SelectItem>
                   ))}
                 </Select>
-                <Input type={"number"} min={0.2} max={2.6} step={0.2} floatValue={tempo}
+                <Input
+                    label={"Speaking tempo"}
+                    type={"number"} min={0.1} max={2.6} step={0.1} value={tempo.toString()}
                        onChange={(e) => setTempo(parseFloat(e.target.value))}
                 />
                 <Select
@@ -293,7 +299,7 @@ export default function InteractiveAvatar() {
                 className="bg-gradient-to-tr from-indigo-500 to-indigo-300 w-full text-white"
                 size="md"
                 variant="shadow"
-                onClick={startSession}
+                onPress={startSession}
               >
                 Start session
               </Button>
@@ -332,10 +338,12 @@ export default function InteractiveAvatar() {
           ) : (
             <div className="w-full text-center">
               <Button
-                isDisabled={!isUserTalking}
-                className="bg-gradient-to-tr from-indigo-500 to-indigo-300 text-white"
-                size="md"
-                variant="shadow"
+                  title={"stop"}
+                  isDisabled={!isUserTalking}
+                  className="bg-gradient-to-tr from-indigo-500 to-indigo-300 text-white"
+                  size="md"
+                  variant="shadow"
+                  onPress={(e)=>stopListening()}
               >
                 {isUserTalking ? "Listening" : "Voice chat"}
               </Button>

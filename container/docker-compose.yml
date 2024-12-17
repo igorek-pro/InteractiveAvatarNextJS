@@ -12,9 +12,20 @@ services:
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       - "traefik.http.routers.nextjs.middlewares=redirect-to-https"
       - "traefik.docker.network=bitrix-common_bitrix"
+      - "traefik.http.routers.nextjs-ssl.rule=Host(`learn.54krd.ru`) || Host(`www.learn.54krd.ru`)"
+      - "traefik.http.routers.nextjs-ssl.entrypoints=https"
+      - "traefik.http.routers.nextjs-ssl.tls=true"
+      - "traefik.http.routers.nextjs-ssl.tls.certresolver=letsEncrypt"
+      - "traefik.http.routers.nextjs-ssl.middlewares=redirect-to-non-www@file"
+      - "traefik.http.routers.nextjs.entrypoints=http"
+      - "traefik.http.routers.nextjs.middlewares=redirect-to-non-www@file"
     volumes:
-      - "./../:/"
+      - "./../:/app"
     environment:
       - NODE_ENV=production
-    depends_on:
-      - bitrix-common-traefik
+    networks:
+      - bitrix
+networks:
+  bitrix:
+    external: true
+    name: bitrix-common_bitrix

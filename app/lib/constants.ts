@@ -16,6 +16,10 @@ export const AVATARS = [
     name: "Angelina",
   },
   {
+    avatar_id: "Blanka_sitting_picnic_front",
+    name: "Blanka",
+  },
+  {
     avatar_id: "Anna_public_3_20240108",
     name: "Anna in Brown T-shirt",
   },
@@ -43,7 +47,7 @@ export const STT_LANGUAGE_LIST = [
 export const STT_KNOWLEDGE_BASE_LIST = [
   {
    knowledge_id: "14a5835c39ad479b9f115ad92dcb1202",
-   name: "Learn English",
+   name: "Learn language",
   },
 ];
 
